@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Conversation</title>
+    <link rel="stylesheet" href="/css/stylecn.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <ul>
+                    <th:block th:each="conversation : ${conversations}">
+                        <li class="con-name" th:utext="${conversation.name}"  th:attr="data-con_id=${conversation.id}, data-receiver_id=${conversation.receiverId} , data-sender_id=${conversation.senderId}">..</li>
+                    </th:block>
+                </ul>
+            </div>
+            <div class="col-8">
+                <ul id="messageDetail">
+                    <th:block th:each="messages : ${messages}">
+                        <!-- IF CUSTOMER IS ANONYMOUS -->
+                        <div th:if="${messages.senderId == senderId}">
+                            <li class="text-right" th:utext="${messages.sender}"></li>
+                            <li class="text-right"  th:utext="${messages.content}"></li>
+                        </div>
+                        <!-- ELSE -->
+                        <div th:unless="${messages.senderId == senderId}">
+                            <li th:utext="${messages.sender}"></li>
+                            <li  th:utext="${messages.content}"></li>
+                        </div>
+
+                    </th:block>
+
+                </ul>
+
+                <form id="sendMessage" name="sendMessage">
+                    <div class="form-group">
+                        <div class="input-group clearfix">
+                            <input type="text" id="message" placeholder="Type a message..." autocomplete="off" class="form-control"/>
+                            <button type="submit" class="primary">Send</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <input id="conId" type="text" th:value="${conId}">
+    <input id="senderId" type="text" th:value="${senderId}">
+    <input id="receiverId" type="text" th:value="${receiverId}">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var stompClient = null;
+            var sendMessage = $("#sendMessage");
+            var topicName = "/topic/public/";
+            var convertionName = "/app/chat.sendMessage/";
+            var convertionAdd = "/app/chat.addUser/";
+            function connect(event) {
+                var conId = document.querySelector('#conId').value.trim();
+                var senderId = document.querySelector('#senderId').value.trim();
+                var socket = new SockJS('/ws');
+                stompClient = Stomp.over(socket);
+                convertionName = convertionName+conId;
+                topicName = topicName+conId;
+                convertionAdd = convertionAdd+conId;
+                console.log(convertionAdd);
+                stompClient.connect({}, onConnected, onError);
+                event.preventDefault();
+            }
+
+            function onConnected() {
+                // Subscribe to the Public Topic
+                stompClient.subscribe(topicName, onMessageReceived);
+
+                // Tell your username to the server
+                stompClient.send(convertionAdd,
+                    {},
+                    JSON.stringify({sender: $("#senderId").val(), type: 'JOIN'})
+                )
+
+
+            }
+
+            function onMessageReceived(payload) {
+                var message = JSON.parse(payload.body);
+
+                console.log(message);
+            }
+
+            function onError(error) {
+                connectingElement.textContent = 'Could not connect to WebSocket server. Please refresh this page to try again!';
+                connectingElement.style.color = 'red';
+            }
+
+            function chatMessage(event) {
+                var messageContent = $("#message").val();
+                if(messageContent && stompClient) {
+                    var chatMessage = {
+                        senderId: $("#senderId").val(),
+                        receiverId: $("#receiverId").val(),
+                        conversationId: $("#conId").val(),
+                        content: messageContent,
+                        type: 'CHAT'
+                    };
+                    stompClient.send(convertionName, {}, JSON.stringify(chatMessage));
+                    $("#message").val("");
+                }
+                event.preventDefault();
+            }
+            $( ".con-name" ).click(function(event) {
+                connect(event)
+                var conversationId = $(this).attr("data-con_id");
+                $("#senderId").val($(this).attr("data-receiver_id"));
+                $("#receiverId").val($(this).attr("data-sender_id"));
+                $.ajax({
+                    type: "GET",
+                    url: "/conversations/"+conversationId,
+                    cache: false,
+                    timeout: 600000,
+                    success: function (data) {
+                        $("#messageDetail").html(data);
+                    },
+                    error: function (e) {
+
+                        console.log(e)
+
+                    }
+                });
+                event.preventDefault();
+            });
+            sendMessage.submit(function(event) {
+                event.preventDefault();
+                chatMessage(event)
+
+            });
+        })
+    </script>
+</body>
+</html>
