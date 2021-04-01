@@ -47,7 +47,10 @@
     </div>
     <input id="conId" type="text" th:value="${conId}">
     <input id="senderId" type="text" th:value="${senderId}">
+    <input id="senderName" type="text" th:value="${senderName}">
     <input id="receiverId" type="text" th:value="${receiverId}">
+    <input id="receiverName" type="text" th:value="${receiverName}">
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
@@ -86,9 +89,13 @@
             }
 
             function onMessageReceived(payload) {
+                console.log(payload);
                 var message = JSON.parse(payload.body);
+                if (message.content != null){
+                    $("#messageDetail li:last").after('<div><li>'+$("#receiverName").val()+'</li><li class="text-right">'+message.content+'</li></div>');
+                }
+                $('#messageDetail').scrollTop = $('#messageDetail').scrollHeight;
 
-                console.log(message);
             }
 
             function onError(error) {
@@ -114,8 +121,9 @@
             $( ".con-name" ).click(function(event) {
                 connect(event)
                 var conversationId = $(this).attr("data-con_id");
-                $("#senderId").val($(this).attr("data-receiver_id"));
-                $("#receiverId").val($(this).attr("data-sender_id"));
+                $("#receiverId").val($(this).attr("data-receiver_id"));
+                $("#senderId").val($(this).attr("data-sender_id"));
+                $("#conId").val($(this).attr("data-con_id"));
                 $.ajax({
                     type: "GET",
                     url: "/conversations/"+conversationId,

@@ -30,16 +30,7 @@ public class LoginController {
     @GetMapping
     public String getLogin(){
 
-        Message message = new Message();
-        message.setContent("jdfsf");
-        message.setStatus(MessageStatus.DELIVERED);
-        message.setUpdateAt(new Date());
-        message.setCreateAt(new Date());
-        message.setReceiver(userRepository.findById(2).get());
-        message.setSender(userRepository.findById(1).get());
-        Conversation conversation = conversationRepository.findById(16).get();
-        message.setConversation(conversation);
-        messageRepository.save(message);
+
         return "login";
     }
 

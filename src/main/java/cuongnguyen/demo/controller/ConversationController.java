@@ -37,14 +37,41 @@ public class ConversationController {
                 findAllConversationByUser(2));
         modelMap.addAttribute("conversations",conversationDTOS);
         modelMap.addAttribute("senderId",0);
+        modelMap.addAttribute("senderName","");
         modelMap.addAttribute("receiverId",0);
+        modelMap.addAttribute("receiverName","");
         modelMap.addAttribute("conId",0);
         if (!conversationDTOS.isEmpty()){
             List<Message> messageList = messageRepository.findAllByConversation(conversationDTOS.get(0).getId());
             modelMap.addAttribute("messages", converterMessage(messageList));
             modelMap.addAttribute("conId",conversationDTOS.get(0).getId());
-            modelMap.addAttribute("senderId",conversationDTOS.get(0).getSenderId());
+            modelMap.addAttribute("senderId",2);
+            modelMap.addAttribute("senderName",conversationDTOS.get(0).getSender());
             modelMap.addAttribute("receiverId",conversationDTOS.get(0).getReceiverId());
+            modelMap.addAttribute("receiverName",conversationDTOS.get(0).getReceiver());
+        }
+
+        return "conversation/conversation";
+    }
+
+    @GetMapping("/sender/{id}")
+    public String findAllBySender(ModelMap modelMap, @PathVariable("id")Integer id){
+        List<ConversationDTO> conversationDTOS  =  converterConversation(conversationRepository.
+                findAllConversationByUser(2));
+        modelMap.addAttribute("conversations",conversationDTOS);
+        modelMap.addAttribute("senderId",id);
+        modelMap.addAttribute("senderName","");
+        modelMap.addAttribute("receiverId",0);
+        modelMap.addAttribute("receiverName","");
+        modelMap.addAttribute("conId",0);
+        if (!conversationDTOS.isEmpty()){
+            List<Message> messageList = messageRepository.findAllByConversation(conversationDTOS.get(0).getId());
+            modelMap.addAttribute("messages", converterMessage(messageList));
+            modelMap.addAttribute("conId",conversationDTOS.get(0).getId());
+            modelMap.addAttribute("senderId",id);
+            modelMap.addAttribute("senderName",conversationDTOS.get(0).getSender());
+            modelMap.addAttribute("receiverId",conversationDTOS.get(0).getReceiverId());
+            modelMap.addAttribute("receiverName",conversationDTOS.get(0).getReceiver());
         }
 
         return "conversation/conversation";
