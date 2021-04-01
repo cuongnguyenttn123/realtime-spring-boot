@@ -1,22 +1,25 @@
 package cuongnguyen.demo.controller;
 
-import cuongnguyen.demo.entity.Conversation;
-import cuongnguyen.demo.entity.Message;
-import cuongnguyen.demo.entity.MessageStatus;
 import cuongnguyen.demo.entity.User;
 import cuongnguyen.demo.repository.ConversationRepository;
 import cuongnguyen.demo.repository.MessageRepository;
 import cuongnguyen.demo.repository.UserRepository;
+import cuongnguyen.demo.utils.WebUtils;
+import java.security.Principal;
+
+
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.Date;
+import java.security.Principal;
 
 
 @Controller
-@RequestMapping("/login")
 public class LoginController {
     @Autowired
     ConversationRepository conversationRepository;
@@ -27,18 +30,34 @@ public class LoginController {
     @Autowired
     UserRepository userRepository;
 
-    @GetMapping
-    public String getLogin(){
+    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    public String loginPage(Model model) {
 
-
-        return "login";
+        return "loginPage";
+    }
+    @RequestMapping(value = "/logoutSuccessful", method = RequestMethod.GET)
+    public String logoutSuccessfulPage(Model model) {
+        model.addAttribute("title", "Logout");
+        return "logoutSuccessfulPage";
     }
 
-    private boolean checkConversation(User sender, User receiver) {
-        boolean check = false;
-        if (conversationRepository.countConversationsBySenderAndReceiver(sender, receiver) != 1 && conversationRepository.countConversationsBySenderAndReceiver(receiver, sender) != 1){
-            check = true;
+    @RequestMapping(value = "/403", method = RequestMethod.GET)
+    public String accessDenied(Model model, Principal principal) {
+
+        if (principal != null) {
+            org.springframework.security.core.userdetails.User
+            loginedUser = (org.springframework.security.core.userdetails.User) ((Authentication) principal).getPrincipal();
+
+            String userInfo = WebUtils.toString(loginedUser);
+
+            model.addAttribute("userInfo", userInfo);
+
+            String message = "Hi " + principal.getName() //
+                    + "<br> You do not have permission to access this page!";
+            model.addAttribute("message", message);
+
         }
-        return check;
+
+        return "403Page";
     }
 }

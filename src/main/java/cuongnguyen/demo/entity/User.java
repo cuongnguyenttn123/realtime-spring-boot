@@ -3,6 +3,7 @@ package cuongnguyen.demo.entity;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -27,7 +28,11 @@ public class User {
     @Column(name = "avt")
     private String avt;
 
-    public String fullName(){
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "user"), inverseJoinColumns = @JoinColumn(name = "role"))
+    private Set<Role> roles;
+
+    public String getFullName(){
         return new StringBuilder(lastName).append(" ").append(firstName).toString();
     }
 }

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="content-message">
+
+    </div>
     <th:block th:each="messages : ${messages}">
-        <div th:if="${messages.senderId == senderId}">
+        <div class="content-message" th:if="${messages.senderId == senderId}">
             <li class="text-right" th:utext="${messages.sender}"></li>
             <li class="text-right"  th:utext="${messages.content}"></li>
         </div>
 
-        <div th:unless="${messages.senderId == senderId}">
+        <div class="content-message" th:unless="${messages.senderId == senderId}">
             <li th:utext="${messages.sender}"></li>
             <li  th:utext="${messages.content}"></li>
         </div>
